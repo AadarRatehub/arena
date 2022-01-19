@@ -140,3 +140,8 @@ pre {
 .overflow-hidden {
   overflow: hidden;
 }
+
+.col-sm-6 {
+  margin-left: 0;
+  padding-left: 0;
+}
