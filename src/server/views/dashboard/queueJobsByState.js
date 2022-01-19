@@ -5,6 +5,7 @@ const {
   BULLMQ_STATES,
 } = require('../helpers/queueHelpers');
 const JobHelpers = require('../helpers/jobHelpers');
+const filterJobs = require('./jobFilter');
 
 function getStates(queue) {
   if (queue.IS_BEE) {
@@ -99,15 +100,28 @@ async function _html(req, res) {
   }
 
   const page = parseInt(req.query.page, 10) || 1;
-  const pageSize = parseInt(req.query.pageSize, 10) || 100;
+  const pageSize =
+    parseInt(req.query.pageSize, 10) || parseInt(jobCounts[state]);
   const order = req.query.order || 'desc';
 
+  const initialStart = 0;
+  const initialEnd = parseInt(jobCounts[state]) - 1;
   const startId = (page - 1) * pageSize;
   const endId = startId + pageSize - 1;
+  const jobFilter = req.query.filter;
 
   let jobs;
   if (queue.IS_BEE) {
     const pageOptions = {};
+
+    pageOptions.size = pageSize;
+    pageOptions.start = initialStart;
+    pageOptions.end = initialEnd;
+
+    jobs = await queue.getJobs(state, pageOptions);
+    if (jobFilter) {
+      jobs = filterJobs(jobs, jobFilter);
+    }
 
     if (['failed', 'succeeded'].includes(state)) {
       pageOptions.size = pageSize;
@@ -116,7 +130,12 @@ async function _html(req, res) {
       pageOptions.end = endId;
     }
 
-    jobs = await queue.getJobs(state, pageOptions);
+    newJobs = [];
+
+    for (let i = startId; i <= endId; i++) {
+      newJobs.push(jobs[i]);
+    }
+    jobs = newJobs;
 
     // Filter out Bee jobs that have already been removed by the time the promise resolves
     jobs = jobs.filter((job) => job);
@@ -162,6 +181,7 @@ async function _html(req, res) {
     pageSize,
     lastPage: _.last(pages),
     order,
+    jobFilter,
   });
 }
 

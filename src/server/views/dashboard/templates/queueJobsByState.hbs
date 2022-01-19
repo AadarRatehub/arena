@@ -1,47 +1,24 @@
 <h2>Queue <code>{{ queueHost }}/{{ queueName }}</code></h2>
 
-<h3>{{capitalize state}} Jobs</h3>
+<h3>Total {{capitalize state}} Jobs</h3>
+
+<div class="input-group">
+  <span class="input-group-btn">
+         <button id="btnFilter" name="btnFilter" type="button" class="btn btn-success">
+                Filter
+         </button>
+      </span>
+    <input type="text" class="form-control" id="filter" name="filter" placeholder="fieldname === value" value="{{ jobFilter }}">
+      <span class="input-group-btn">
+    <button id="btnClear" name="btnClear" type="button" class="btn btn-danger">
+                Clear
+         </button>
+  </span>
+</div>
+<p>Displaying {{jobs.length}} {{ capitalize state}} Jobs</p>
 
 <div class="row pagination-container">
   <div class="col-sm-6">
-    {{#unless disablePagination}}
-    <nav aria-label="Job navigation">
-      <ul class="pagination">
-        <li {{#eq currentPage 1}} class="disabled">
-          <span>&laquo;</span>
-          {{else}}
-          ><a
-            href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ subtract currentPage 1 }}&amp;pageSize={{ pageSize }}&amp;order={{ order }}"
-            aria-label="Previous">
-            <span aria-hidden="true">&laquo;</span>
-          </a>
-          {{/eq}}
-        </li>
-        {{#each pages}}
-        <li {{#eq this ../currentPage}} class="active" {{/eq}}>
-
-          <a
-            href="{{ ../basePath }}/{{ encodeURI ../queueHost }}/{{ encodeURI ../queueName }}/{{ ../state }}?page={{ this }}&amp;pageSize={{ ../pageSize }}&amp;order={{ ../order }}">{{ this }}</a>
-        </li>
-        {{/each}}
-        <li {{#eq currentPage lastPage}} class="disabled">
-          <span>&raquo;</span>
-          {{else}}
-          ><a
-            href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ add currentPage 1 }}&amp;pageSize={{ pageSize }}&amp;order={{ order }}"
-            aria-label="Previous">
-            <span aria-hidden="true">&raquo;</span>
-          </a>
-          {{/eq}}
-        </li>
-      </ul>
-    </nav>
-    {{else}}
-    Bee-queue does not support pagination for {{ state }} queues &mdash; currently displaying up to <b>{{ pageSize }}
-      jobs</b>. To change count, use "Size" dropdown.
-    {{/unless}}
-  </div>
-  <div class="col-sm-6 text-right">
     <a href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}.json" type="button"
       class="btn btn-primary">
       Dump jobs to JSON (limited to 1000)
@@ -79,20 +56,23 @@
           {{/if}}
           <ul class="dropdown-menu">
             <li><a
-                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}<&amp;pageSize={{ pageSize }}">{{ pageSize }}
+                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}<&amp;pageSize={{ pageSize }}&filter={{ jobFilter }}">{{ pageSize }}
                 jobs</a></li>
             <li role="separator" class="divider"></li>
             <li><a
-                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ adjustedPage currentPage pageSize 5 }}<&amp;order={{ order }}&amp;pageSize=5">5
+                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}&amp;pageSize=5&filter={{ jobFilter }}">5
                 jobs</a></li>
             <li><a
-                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ adjustedPage currentPage pageSize 20 }}<&amp;order={{ order }}&amp;pageSize=20">20
+                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}&amp;pageSize=20&filter={{ jobFilter }}">20
                 jobs</a></li>
             <li><a
-                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ adjustedPage currentPage pageSize 100 }}<&amp;order={{ order }}&amp;pageSize=100">100
+                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}&amp;pageSize=100&filter={{ jobFilter }}">100
                 jobs</a></li>
             <li><a
-                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ adjustedPage currentPage pageSize 1000 }}<&amp;order={{ order }}&amp;pageSize=1000">1000
+                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}&amp;pageSize=1000&filter={{ jobFilter }}">1000
+                jobs</a></li>
+            <li><a
+                href="{{ basePath }}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage }}<&amp;order={{ order }}&amp;pageSize={{ numJobs }}&filter={{ jobFilter }}">Total
                 jobs</a></li>
           </ul>
         </div>
@@ -122,6 +102,7 @@
     </div>
   </div>
 </div>
+
 
 <div class="row">
   <div class="col-sm-12">
@@ -174,4 +155,15 @@
 {{#if hasFlows}}
 <li><a href="{{ basePath }}/flows/">Flows Overview</a></li>
 {{/if}}
+{{/contentFor}}
+{{#contentFor 'script'}}
+        $(document).ready(function() {
+            $("#btnFilter").click(function () {
+                let _filter = $('#filter').val();
+                $(location).attr('href', '{{basePath}}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage  }}&pageSize={{ pageSize }}' + '&filter=' + _filter);
+            });
+            $("#btnClear").click(function () {
+                $(location).attr('href', '{{basePath}}/{{ encodeURI queueHost }}/{{ encodeURI queueName }}/{{ state }}?page={{ currentPage  }}&pageSize={{ pageSize }}');
+            });
+        });
 {{/contentFor}}
